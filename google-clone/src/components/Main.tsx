@@ -1,13 +1,22 @@
 'use client'
+import 'regenerator-runtime'
 import { useState } from "react";
 import Image from "next/image";
 import { AiOutlineSearch } from 'react-icons/ai';
 import { BiMicrophone } from 'react-icons/bi';
+import { BsFillMicFill } from 'react-icons/bs';
 import { AiFillCamera } from 'react-icons/ai';
 import { useRouter } from "next/navigation";
+import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition'
 
 const Main: React.FC = () => {
     const [search, setSearch] = useState<string>('');
+    const {
+        transcript,
+        listening,
+        resetTranscript,
+        browserSupportsSpeechRecognition
+      } = useSpeechRecognition();
     
     const router = useRouter();
 
@@ -19,6 +28,19 @@ const Main: React.FC = () => {
         router.push(`https://google.com/search?q=${search}`);
     }
 
+    const startListening = () => {
+        SpeechRecognition.startListening({ continuous: true, language: 'en-IN' })
+    }
+
+    const stopListening = () => {
+        SpeechRecognition.stopListening()
+        setSearch(transcript);
+    }
+
+    if (!browserSupportsSpeechRecognition) {
+        return null;
+    }
+    
     return (
         <div className="flex flex-col items-center mt-28">
             <Image
@@ -32,10 +54,21 @@ const Main: React.FC = () => {
                 <input 
                     type="text" 
                     className="w-full focus:outline-none ml-4" 
-                    value={search}
+                    value={search || transcript}
                     onChange={(e) => setSearch(e.target.value)}
                 />
-                <BiMicrophone className="text-3xl text-slate-400 mr-5" />
+                {
+                    listening ? 
+                        <BsFillMicFill 
+                            onClick={stopListening}
+                            className="text-3xl text-slate-400 mr-5" 
+                        />
+                    : <BiMicrophone 
+                        onClick={startListening}
+                        className="text-3xl text-slate-400 mr-5" 
+                    />
+
+                }
                 <AiFillCamera className="text-3xl text-slate-400" />
             </form>
             <div className="flex mt-7">
