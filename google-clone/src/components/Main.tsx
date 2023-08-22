@@ -10,7 +10,7 @@ import { useRouter } from "next/navigation";
 import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition'
 
 const Main: React.FC = () => {
-    const [search, setSearch] = useState<string>('');
+    const [search, setSearch] = useState<any>('');
     const {
         transcript,
         listening,
@@ -35,6 +35,28 @@ const Main: React.FC = () => {
     const stopListening = () => {
         SpeechRecognition.stopListening()
         setSearch(transcript);
+    }
+
+    const selectImage = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const response = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+    
+            reader.onload = (event) => {
+                if (!event.target) return;
+                resolve(event.target.result);
+            };
+    
+            reader.onerror = (err) => {
+                reject(err);
+            };
+    
+            reader.readAsDataURL(file);
+        });
+        console.log(response);
+        document.location.assign(`https://www.google.com/searchbyimage?&image_url=${response}`);
     }
 
     if (!browserSupportsSpeechRecognition) {
@@ -69,7 +91,15 @@ const Main: React.FC = () => {
                     />
 
                 }
-                <AiFillCamera className="text-3xl text-slate-400" />
+                <label htmlFor="imageInput">
+                    <AiFillCamera className="text-3xl text-slate-400" />
+                </label>
+                <input
+                    type="file"
+                    id="imageInput"
+                    style={{ display: "none" }}
+                    onChange={(e) => selectImage(e)}
+                />
             </form>
             <div className="flex mt-7">
                 <button 
